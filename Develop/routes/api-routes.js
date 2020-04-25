@@ -1,42 +1,50 @@
-const route = require('express');
-const Workout = require('../models/index')
-// const db = require('../models');
+const Workout = require("../models/workout.js");
 
-
-route.get('/api/workouts', (req, res) => {
-    Workout.find({})
-    .then(data)
-    res.jsons(data)
-    .catch(err => {
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(data)
-        }
-    })
-});
-
-route.post('/api/workouts', ({body}, res) => {
-    Workout.create(body)
-    .then(response => {
-        console.log('Workout created')
-    })
-    .catch(err => {
-        console.log(err);
-    })
-});
-
-route.put('/api/workouts/:id', (req, res) => {
-    let setDur = { totalDuration: req.body.duration }
-    Workout.update({ _id: req.params.id }, { $push: { exercises: req.body }, $inc: setDur})
-    .then(response => {
-        res.json(response)
-    })
-    .catch(err => {
-        res.status(400).json(err)
-    })
-});
-
-
-
-module.exports = route;
+module.exports = function(app) {
+    app.get("/api/workouts", (req, res) => {
+        Workout.find({})
+            .then(data => {
+                res.json(data);
+            })
+            .catch(err => {
+                res.status(400).json(err);
+            });
+    });
+    
+    app.post("/api/workouts", ({ body }, res) => {
+        Workout.create(body)
+            .then(data => {
+                console.log(data);
+                res.json(data);
+            })
+            .catch(err => {
+                res.status(400).json(err);
+            });
+    });
+    
+    app.put("/api/workouts/:id", (req, res) => {
+        Workout.updateOne(
+            {   _id: req.params.id  },
+            { 
+                $push: { exercises: req.body },
+                $inc: { totalDuration: req.body.duration }
+            }
+        )
+        .then(newWorkout => {
+            res.json(newWorkout);
+        })
+        .catch(err => {
+            res.status(400).json(err);
+        }); 
+    });
+    
+    app.get("/api/workouts/range", (req, res) => {
+        Workout.find({})
+            .then(dbWorkout => {
+                res.json(dbWorkout);
+            })
+            .catch(err => {
+                res.status(400).json(err);
+            });
+    });    
+}
